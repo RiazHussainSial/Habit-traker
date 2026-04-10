@@ -154,17 +154,21 @@ a {
 
 .quote-card {
   position: relative;
-  border-radius: 24px;
-  padding: 1.2rem;
+  width: 100%;
+  max-width: 100%;
+  border-radius: 20px;
+  padding: 1rem;
   border: 1px solid #3a3a33;
   background: linear-gradient(140deg, #1b1a15 0%, #2b261a 52%, #3b301f 100%);
   box-shadow: 0 20px 38px rgba(17, 14, 9, 0.32);
   overflow: hidden;
+  word-break: break-word;
 }
 
 @media (min-width: 768px) {
   .quote-card {
     padding: 1.5rem;
+    border-radius: 24px;
   }
 }
 
@@ -172,8 +176,8 @@ a {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 85% 0%, rgba(216, 182, 131, 0.28), transparent 45%),
-    radial-gradient(circle at 10% 100%, rgba(111, 130, 125, 0.2), transparent 40%);
+    radial-gradient(circle at 85% 0%, rgba(216, 182, 131, 0.26), transparent 48%),
+    radial-gradient(circle at 10% 100%, rgba(111, 130, 125, 0.18), transparent 44%);
   pointer-events: none;
 }
 

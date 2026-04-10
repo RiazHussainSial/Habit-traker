@@ -31,31 +31,31 @@ export default function AppShell({ user, onLogout, active, title, subtitle, chil
 
   return (
     <div className="pb-10">
-      <header className="relative left-[calc(-50vw+50%)] w-full md:w-screen pt-0 pb-5 px-0 md:px-0 overflow-hidden">
-        <div className="surface rounded-none border-x-0 px-4 sm:px-5 md:px-6 lg:px-10 py-4 md:py-5 backdrop-blur-xl bg-white/75 relative overflow-hidden">
+      <header className="relative left-[calc(-50vw+50%)] w-full md:w-screen pt-3 md:pt-0 pb-5 px-0 md:px-0 overflow-hidden">
+        <div className="surface rounded-2xl md:rounded-none border-x md:border-x-0 px-4 sm:px-5 md:px-6 lg:px-10 py-4 md:py-5 backdrop-blur-xl bg-white/75 relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0 opacity-80 bg-[radial-gradient(circle_at_top_right,rgba(183,131,41,0.16),transparent_36%),radial-gradient(circle_at_left,rgba(95,107,110,0.1),transparent_42%)]" />
 
           <div className="relative flex flex-col gap-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start justify-between gap-3 sm:items-center">
               <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}>
-                <Link href="/dashboard" className="inline-flex items-center gap-2">
+                <Link href="/dashboard" className="inline-flex items-start gap-2 pr-2">
                   <span className="h-3 w-3 rounded-full bg-(--accent) shadow-[0_0_20px_rgba(183,131,41,0.6)]" />
-                  <div>
-                    <h1 className="text-xl md:text-2xl font-semibold tracking-tight">Habit OS</h1>
-                    <p className="text-xs md:text-sm text-stone-600">Professional habit intelligence and subscription workflow</p>
+                  <div className="min-w-0">
+                    <h1 className="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight leading-tight">Habit OS</h1>
+                    <p className="text-[11px] sm:text-xs md:text-sm text-stone-600 leading-snug">Professional habit intelligence and subscription workflow</p>
                   </div>
                 </Link>
               </motion.div>
 
               <div className="hidden lg:flex items-center gap-3">
-                <div className="text-right max-w-[220px]">
+                <div className="text-right max-w-55">
                   <p className="text-sm font-medium max-w-65 truncate">{user?.email || "Guest"}</p>
                   <p className="text-xs text-stone-500">Signed in</p>
                 </div>
                 {onLogout ? <button className="btn btn-primary text-sm" onClick={onLogout}>Logout</button> : null}
               </div>
 
-              <button className="lg:hidden nav-menu-toggle self-start sm:self-auto" onClick={() => setMenuOpen((prev) => !prev)} aria-label="Toggle menu">
+              <button className="lg:hidden nav-menu-toggle shrink-0" onClick={() => setMenuOpen((prev) => !prev)} aria-label="Toggle menu">
                 <span>{menuOpen ? "Close" : "Menu"}</span>
               </button>
             </div>

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import toast from "react-hot-toast";
 import AppShell from "@/components/AppShell";
 import Footer from "@/components/Footer";
 import QuoteCard from "@/components/QuoteCard";
@@ -73,7 +72,6 @@ export default function QuotesPage() {
       currentQuoteRef.current = fallback;
       setQuote(fallback);
       setHistory((current) => [{ ...fallback, emotion, id: Date.now() }, ...current].slice(0, 6));
-      toast.error(error?.response?.data?.error || "Unable to generate quote, showing a local AI-style fallback");
     } finally {
       setRefreshing(false);
     }
@@ -91,8 +89,8 @@ export default function QuotesPage() {
   return (
     <AppShell user={user} onLogout={logout} active="/quotes" title="AI Quote Studio" subtitle="Motivation">
       {loading ? <div className="surface p-6">Loading quotes...</div> : null}
-      <div className="grid xl:grid-cols-[1.15fr_0.85fr] gap-4">
-        <SectionCard title="Daily AI Quote" subtitle="Animated motivation">
+      <div className="grid xl:grid-cols-[1.15fr_0.85fr] gap-4 items-start">
+        <SectionCard title="Daily AI Quote" subtitle="Animated motivation" className="min-w-0 overflow-hidden">
           <div className="flex flex-wrap gap-2 mb-5">
             {emotions.map((value) => (
               <button
@@ -113,19 +111,21 @@ export default function QuotesPage() {
             </button>
           </div>
 
-          <QuoteCard
-            quote={quote.quote}
-            suggestion={quote.habit_suggestion}
-            insight={quote.insight}
-            onRefresh={generateQuote}
-          />
+          <div className="min-w-0">
+            <QuoteCard
+              quote={quote.quote}
+              suggestion={quote.habit_suggestion}
+              insight={quote.insight}
+              onRefresh={generateQuote}
+            />
+          </div>
 
           <p className="mt-4 text-sm text-stone-600">
             Current emotion: <strong>{emotion}</strong>. Click Refresh Quote to generate a new AI response.
           </p>
         </SectionCard>
 
-        <SectionCard title="Quote History" subtitle="Recent generations">
+        <SectionCard title="Quote History" subtitle="Recent generations" className="min-w-0">
           <div className="space-y-3">
             {history.length ? history.map((item) => (
               <div key={item.id} className="rounded-2xl border border-stone-200 bg-white/80 p-4">

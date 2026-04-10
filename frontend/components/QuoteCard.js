@@ -15,25 +15,25 @@ export default function QuoteCard({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`quote-card h-full flex ${className}`}
+      className={`quote-card flex w-full min-w-0 ${className}`}
     >
       <div className="quote-card-overlay" />
       <div className="relative flex min-h-0 w-full flex-col">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-2">
           <div>
             <p className="text-xs uppercase tracking-[0.26em] text-white/65">Daily quote</p>
-            <h2 className="text-xl md:text-2xl font-semibold text-white leading-tight mt-1">AI Motivational Brief</h2>
+            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-white leading-tight mt-1">AI Motivational Brief</h2>
           </div>
           <button
             type="button"
-            className="btn text-sm py-2 px-3 bg-(--accent) border border-transparent text-white shadow-[0_10px_22px_rgba(183,131,41,0.28)] hover:bg-(--accent-strong)"
+            className="btn text-sm py-2 px-3 w-full sm:w-auto bg-(--accent) border border-transparent text-white shadow-[0_10px_22px_rgba(183,131,41,0.28)] hover:bg-(--accent-strong)"
             onClick={onRefresh}
           >
             Refresh
           </button>
         </div>
         <div className="flex-1 flex items-center py-1">
-          <p className="text-lg md:text-[1.2rem] leading-7 text-white font-medium">&ldquo;{quote}&rdquo;</p>
+          <p className="text-base sm:text-lg md:text-[1.2rem] leading-7 text-white font-medium">&ldquo;{quote}&rdquo;</p>
         </div>
 
         <div className="mt-2 rounded-2xl border border-white/20 bg-white/10 p-3">

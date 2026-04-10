@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 import Footer from "@/components/Footer";
 
 const panels = [
@@ -22,21 +23,50 @@ const panels = [
 ];
 
 export default function HomePage() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <>
     <div className="min-h-screen space-y-4 overflow-x-hidden">
-      <header className="relative left-[calc(-50vw+50%)] w-full md:w-screen pt-0 pb-5 px-0 md:px-0 overflow-hidden">
-        <div className="surface rounded-none border-x-0 px-4 sm:px-5 md:px-6 lg:px-10 py-4 md:py-5 backdrop-blur-xl bg-white/80 relative overflow-hidden">
+      <header className="relative left-[calc(-50vw+50%)] w-full md:w-screen pt-3 md:pt-0 pb-5 px-0 md:px-0 overflow-hidden">
+        <div className="surface rounded-2xl md:rounded-none border-x md:border-x-0 px-4 sm:px-5 md:px-6 lg:px-10 py-4 md:py-5 backdrop-blur-xl bg-white/80 relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0 opacity-80 bg-[radial-gradient(circle_at_top_right,rgba(183,131,41,0.16),transparent_36%),radial-gradient(circle_at_left,rgba(95,107,110,0.1),transparent_42%)]" />
           <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-stone-500">Habit OS</p>
-              <h1 className="text-2xl md:text-3xl font-semibold tracking-tight leading-tight">Industrial Habit Tracker Platform</h1>
+            <div className="flex items-start justify-between gap-3 md:block">
+              <div>
+                <p className="text-xs uppercase tracking-[0.28em] text-stone-500">Habit OS</p>
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight leading-tight">Industrial Habit Tracker Platform</h1>
+              </div>
+              <button
+                type="button"
+                className="md:hidden nav-menu-toggle shrink-0"
+                onClick={() => setMenuOpen((prev) => !prev)}
+                aria-label="Toggle authentication menu"
+              >
+                {menuOpen ? "Close" : "Menu"}
+              </button>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-2">
+
+            <div className="hidden md:flex flex-col sm:flex-row gap-2 sm:gap-2 w-full md:w-auto">
               <Link href="/login" className="btn btn-ghost text-center">Login</Link>
               <Link href="/signup" className="btn btn-primary text-center">Create Account</Link>
             </div>
+
+            <AnimatePresence>
+              {menuOpen ? (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="md:hidden border-t border-stone-200 pt-3"
+                >
+                  <div className="flex flex-col gap-2">
+                    <Link href="/login" className="btn btn-ghost text-center" onClick={() => setMenuOpen(false)}>Login</Link>
+                    <Link href="/signup" className="btn btn-primary text-center" onClick={() => setMenuOpen(false)}>Create Account</Link>
+                  </div>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
           </div>
         </div>
       </header>
@@ -85,7 +115,9 @@ export default function HomePage() {
         </div>
       </main>
 
-      <section className="layout-shell mt-3 md:mt-6 grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="layout-shell h-8 md:h-12" aria-hidden="true" />
+
+      <section className="layout-shell grid md:grid-cols-2 xl:grid-cols-4 gap-4">
         {panels.map((panel, index) => (
           <motion.div
             key={panel.title}
