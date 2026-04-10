@@ -12,11 +12,22 @@ dotenv.config();
 const app = express();
 const upload = multer({ storage: multer.memoryStorage() });
 
+function toOrigin(value) {
+  if (!value) return "";
+  const trimmed = String(value).trim();
+  if (!trimmed) return "";
+  try {
+    return new URL(trimmed).origin;
+  } catch {
+    return trimmed.replace(/\/+$/, "");
+  }
+}
+
 const PORT = Number(process.env.PORT || 4000);
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:3000";
 const FRONTEND_URLS = (process.env.FRONTEND_URLS || FRONTEND_URL)
   .split(",")
-  .map((value) => value.trim())
+  .map((value) => toOrigin(value))
   .filter(Boolean);
 const PRIMARY_FRONTEND_URL = FRONTEND_URLS[0] || "http://localhost:3000";
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -54,7 +65,8 @@ app.use(cors({
   origin(origin, callback) {
     // Allow server-to-server requests and tools that do not send an Origin header.
     if (!origin) return callback(null, true);
-    if (FRONTEND_URLS.includes(origin)) return callback(null, true);
+    const normalizedOrigin = toOrigin(origin);
+    if (FRONTEND_URLS.includes(normalizedOrigin)) return callback(null, true);
     return callback(new Error(`CORS blocked for origin: ${origin}`));
   },
   credentials: true,
