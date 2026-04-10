@@ -85,7 +85,7 @@ export default function HomePage() {
         </div>
       </main>
 
-      <section className="layout-shell grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <section className="layout-shell mt-3 md:mt-6 grid md:grid-cols-2 xl:grid-cols-4 gap-4">
         {panels.map((panel, index) => (
           <motion.div
             key={panel.title}
