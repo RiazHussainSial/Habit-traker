@@ -24,6 +24,26 @@ export function getFriendlyError(error, fallback = "Something went wrong. Please
     return "Unable to save right now due to permission settings. Please try again in a moment.";
   }
 
+  if (status === 409 || raw.includes("already exists") || raw.includes("already registered")) {
+    return "This account already exists. Please login instead.";
+  }
+
+  if (status === 403) {
+    return "You do not have permission to perform this action.";
+  }
+
+  if (status === 404) {
+    return "Requested data was not found.";
+  }
+
+  if (status === 422 || raw.includes("validation")) {
+    return "Some details are invalid. Please review your input and try again.";
+  }
+
+  if (status >= 500) {
+    return "Server is temporarily unavailable. Please try again shortly.";
+  }
+
   if (raw.includes("missing auth token") || raw.includes("invalid auth token")) {
     return "Your session expired. Please login again.";
   }

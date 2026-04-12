@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import dayjs from "dayjs";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from "recharts";
 
 function ChartFrame({ height, children }) {
@@ -33,11 +34,53 @@ export default function AnalyticsCharts({ analytics, compact = false }) {
   const chartHeight = compact ? 220 : 256;
   const [view, setView] = useState("daily");
 
+  const dailySeries = useMemo(() => {
+    const mapped = new Map((analytics?.daily || []).map((item) => [item.period, item]));
+    return Array.from({ length: 14 }).map((_, index) => {
+      const key = dayjs().subtract(13 - index, "day").format("YYYY-MM-DD");
+      const row = mapped.get(key);
+      return {
+        period: dayjs(key).format("MM/DD"),
+        rawPeriod: key,
+        completed: row?.completed || 0,
+        missed: row?.missed || 0,
+      };
+    });
+  }, [analytics]);
+
+  const weeklySeries = useMemo(() => {
+    const mapped = new Map((analytics?.weekly || []).map((item) => [item.period, item]));
+    return Array.from({ length: 8 }).map((_, index) => {
+      const key = dayjs().startOf("week").subtract(7 - index, "week").format("YYYY-MM-DD");
+      const row = mapped.get(key);
+      return {
+        period: `W ${dayjs(key).format("MMM D")}`,
+        rawPeriod: key,
+        completed: row?.completed || 0,
+        missed: row?.missed || 0,
+      };
+    });
+  }, [analytics]);
+
+  const monthlySeries = useMemo(() => {
+    const mapped = new Map((analytics?.monthly || []).map((item) => [item.period, item]));
+    return Array.from({ length: 6 }).map((_, index) => {
+      const key = dayjs().startOf("month").subtract(5 - index, "month").format("YYYY-MM");
+      const row = mapped.get(key);
+      return {
+        period: dayjs(`${key}-01`).format("MMM YYYY"),
+        rawPeriod: key,
+        completed: row?.completed || 0,
+        missed: row?.missed || 0,
+      };
+    });
+  }, [analytics]);
+
   const chartData = useMemo(() => {
-    if (view === "daily") return analytics?.daily || [];
-    if (view === "weekly") return analytics?.weekly || [];
-    return analytics?.monthly || [];
-  }, [analytics, view]);
+    if (view === "daily") return dailySeries;
+    if (view === "weekly") return weeklySeries;
+    return monthlySeries;
+  }, [dailySeries, monthlySeries, view, weeklySeries]);
 
   const xAxisLabel = view === "daily" ? "Date" : view === "weekly" ? "Week" : "Month";
   const title = view === "daily" ? "Daily Completion Map" : view === "weekly" ? "Weekly Completion Map" : "Monthly Completion Map";
@@ -112,23 +155,15 @@ export default function AnalyticsCharts({ analytics, compact = false }) {
         </ChartFrame>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-[1fr_0.7fr]">
-        <div className="rounded-2xl border border-stone-200 bg-white/75 p-4">
-          <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Recent entries</p>
-          <div className="mt-3 space-y-2">
-            {recentItems.length ? recentItems.map((item) => (
-              <div key={item.period} className="flex items-center justify-between rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
-                <span className="font-medium text-stone-700">{item.period}</span>
-                <span className="text-stone-600">Completed {item.completed || 0} · Missed {item.missed || 0}</span>
-              </div>
-            )) : <p className="text-sm text-stone-600">No analytics data yet.</p>}
-          </div>
-        </div>
-        <div className="rounded-2xl border border-stone-200 bg-white/75 p-4">
-          <p className="text-xs uppercase tracking-[0.2em] text-stone-500">View note</p>
-          <p className="mt-2 text-sm text-stone-700 leading-relaxed">
-            Click Daily, Weekly, or Monthly to switch the graph. Daily shows exact completed and missed days, while weekly and monthly update the same chart with aggregated progress.
-          </p>
+      <div className="rounded-2xl border border-stone-200 bg-white/75 p-4">
+        <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Recent entries</p>
+        <div className="mt-3 space-y-2">
+          {recentItems.length ? recentItems.map((item) => (
+            <div key={item.rawPeriod || item.period} className="flex items-center justify-between rounded-xl border border-stone-200 bg-white px-3 py-2 text-sm">
+              <span className="font-medium text-stone-700">{item.period}</span>
+              <span className="text-stone-600">Completed {item.completed || 0} · Missed {item.missed || 0}</span>
+            </div>
+          )) : <p className="text-sm text-stone-600">No analytics data yet.</p>}
         </div>
       </div>
     </div>

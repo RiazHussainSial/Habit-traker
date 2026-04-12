@@ -456,7 +456,21 @@ app.get("/api/health", (_, res) => {
 
 app.post("/api/auth/signup", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    const password = String(req.body?.password || "");
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required." });
+    }
+    if (!password) {
+      return res.status(400).json({ error: "Password is required." });
+    }
+
+    const existingUser = await findUserByEmail(email);
+    if (existingUser?.id) {
+      return res.status(409).json({ error: "This account already exists. Please login instead." });
+    }
+
     const emailRedirectTo = `${PRIMARY_FRONTEND_URL}/login`;
     const { data, error } = await supabasePublic.auth.signUp({
       email,
@@ -485,7 +499,13 @@ app.post("/api/auth/signup", async (req, res) => {
 
 app.post("/api/auth/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    const password = String(req.body?.password || "");
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required." });
+    }
+
     const { data, error } = await supabasePublic.auth.signInWithPassword({ email, password });
     if (error) {
       const rawMessage = String(error.message || "").toLowerCase();
