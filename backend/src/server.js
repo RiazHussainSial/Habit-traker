@@ -59,6 +59,17 @@ const supabasePublic = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: false },
 });
 
+function createUserClient(token) {
+  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: false },
+    global: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  });
+}
+
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY) : null;
 
 app.use(cors({
@@ -75,6 +86,11 @@ app.use(express.json({ limit: "8mb" }));
 
 function isMissingTableError(error) {
   return error?.code === "42P01" || /relation .* does not exist/i.test(error?.message || "");
+}
+
+function isRlsError(error) {
+  const message = error?.message || "";
+  return error?.code === "42501" || /row-level security policy/i.test(message);
 }
 
 function isMissingBucketError(error) {
@@ -441,8 +457,19 @@ app.get("/api/health", (_, res) => {
 app.post("/api/auth/signup", async (req, res) => {
   try {
     const { email, password } = req.body;
-    const { data, error } = await supabasePublic.auth.signUp({ email, password });
-    if (error) return res.status(400).json({ error: error.message });
+    const emailRedirectTo = `${PRIMARY_FRONTEND_URL}/login`;
+    const { data, error } = await supabasePublic.auth.signUp({
+      email,
+      password,
+      options: { emailRedirectTo },
+    });
+    if (error) {
+      const rawMessage = String(error.message || "").toLowerCase();
+      if (rawMessage.includes("already registered") || rawMessage.includes("already exists") || rawMessage.includes("duplicate")) {
+        return res.status(409).json({ error: "This account already exists. Please login instead." });
+      }
+      return res.status(400).json({ error: "Unable to create account. Please check your details and try again." });
+    }
     if (data?.user) {
       try {
         await upsertUserRow(data.user);
@@ -460,7 +487,13 @@ app.post("/api/auth/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     const { data, error } = await supabasePublic.auth.signInWithPassword({ email, password });
-    if (error) return res.status(400).json({ error: error.message });
+    if (error) {
+      const rawMessage = String(error.message || "").toLowerCase();
+      if (rawMessage.includes("invalid login credentials") || rawMessage.includes("invalid") || rawMessage.includes("password")) {
+        return res.status(401).json({ error: "Email or password is incorrect." });
+      }
+      return res.status(400).json({ error: "Unable to login right now. Please try again." });
+    }
     if (data?.user) {
       try {
         await upsertUserRow(data.user);
@@ -536,7 +569,13 @@ app.post("/api/habits", requireAuth, upload.single("image"), async (req, res) =>
       image_url: imageUrl,
     };
 
-    const { data, error } = await supabaseAdmin.from("habits").insert(payload).select("*").single();
+    let { data, error } = await supabaseAdmin.from("habits").insert(payload).select("*").single();
+
+    if (error && isRlsError(error) && req.token) {
+      const userClient = createUserClient(req.token);
+      ({ data, error } = await userClient.from("habits").insert(payload).select("*").single());
+    }
+
     if (error && isMissingTableError(error)) {
       return res.status(503).json({ error: "Habits table is not ready yet." });
     }
@@ -714,25 +753,35 @@ app.get("/api/analytics", requireAuth, async (req, res) => {
 
   const overview = computeStreaks(logs || []);
 
+  const dailyMap = {};
   const weeklyMap = {};
   const monthlyMap = {};
   for (const row of logs || []) {
+    const dayKey = dayjs(row.date).format("YYYY-MM-DD");
     const weekKey = dayjs(row.date).startOf("week").format("YYYY-MM-DD");
     const monthKey = dayjs(row.date).startOf("month").format("YYYY-MM");
 
-    if (!weeklyMap[weekKey]) weeklyMap[weekKey] = { period: weekKey, completed: 0, total: 0 };
-    if (!monthlyMap[monthKey]) monthlyMap[monthKey] = { period: monthKey, completed: 0, total: 0 };
+    if (!dailyMap[dayKey]) dailyMap[dayKey] = { period: dayKey, completed: 0, missed: 0, total: 0 };
+    if (!weeklyMap[weekKey]) weeklyMap[weekKey] = { period: weekKey, completed: 0, missed: 0, total: 0 };
+    if (!monthlyMap[monthKey]) monthlyMap[monthKey] = { period: monthKey, completed: 0, missed: 0, total: 0 };
 
+    dailyMap[dayKey].total += 1;
     weeklyMap[weekKey].total += 1;
     monthlyMap[monthKey].total += 1;
     if (row.status === "completed") {
+      dailyMap[dayKey].completed += 1;
       weeklyMap[weekKey].completed += 1;
       monthlyMap[monthKey].completed += 1;
+    } else {
+      dailyMap[dayKey].missed += 1;
+      weeklyMap[weekKey].missed += 1;
+      monthlyMap[monthKey].missed += 1;
     }
   }
 
   return res.json({
     overview,
+    daily: Object.values(dailyMap),
     weekly: Object.values(weeklyMap),
     monthly: Object.values(monthlyMap),
   });

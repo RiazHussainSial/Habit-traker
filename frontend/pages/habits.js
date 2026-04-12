@@ -8,6 +8,7 @@ import SectionCard from "@/components/SectionCard";
 import UpgradePromptModal from "@/components/UpgradePromptModal";
 import api from "@/lib/apiClient";
 import usePageSession from "@/lib/usePageSession";
+import { getFriendlyError } from "@/lib/errorMessages";
 
 const initialForm = { title: "", description: "", frequency: "daily" };
 
@@ -108,7 +109,7 @@ export default function HabitsPage() {
         toast.error("Free plan reached. Upgrade to add more habits.");
         return;
       }
-      toast.error(error?.response?.data?.error || "Unable to save habit");
+      toast.error(getFriendlyError(error, "Unable to save habit."));
     }
   };
 
@@ -133,7 +134,7 @@ export default function HabitsPage() {
       setForm((prev) => ({ ...prev, description: data?.description || prev.description }));
       toast.success(mode === "generate" ? "Description generated." : "Description improved.");
     } catch (error) {
-      toast.error(error?.response?.data?.error || "AI assist failed");
+      toast.error(getFriendlyError(error, "AI assist failed."));
     } finally {
       setAiBusy(false);
     }

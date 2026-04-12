@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import Footer from "@/components/Footer";
 import api from "@/lib/apiClient";
 import { supabase } from "@/lib/supabaseClient";
+import { getFriendlyError } from "@/lib/errorMessages";
 
 function PasswordToggleIcon({ visible }) {
   return visible ? (
@@ -33,9 +34,20 @@ export default function LoginPage() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail) {
+      toast.error("Email is required.");
+      return;
+    }
+    if (!password.trim()) {
+      toast.error("Password is required.");
+      return;
+    }
+
     setLoading(true);
     try {
-      const { data } = await api.post("/api/auth/login", { email, password });
+      const { data } = await api.post("/api/auth/login", { email: normalizedEmail, password });
       if (data?.session) {
         await supabase.auth.setSession({
           access_token: data.session.access_token,
@@ -45,7 +57,7 @@ export default function LoginPage() {
       toast.success("Welcome back");
       router.push("/dashboard");
     } catch (error) {
-      toast.error(error?.response?.data?.error || "Login failed");
+      toast.error(getFriendlyError(error, "Login failed."));
     } finally {
       setLoading(false);
     }
@@ -76,7 +88,7 @@ export default function LoginPage() {
   return (
     <>
     <div className="layout-shell min-h-screen grid place-items-center py-10">
-      <form className="surface p-8 w-full max-w-md space-y-3" onSubmit={onSubmit}>
+      <form className="surface p-8 w-full max-w-md space-y-3" onSubmit={onSubmit} noValidate>
         <h1 className="text-2xl font-semibold">Login</h1>
         <input className="input" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         <div className="relative">

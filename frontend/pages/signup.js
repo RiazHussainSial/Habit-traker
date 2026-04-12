@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import Footer from "@/components/Footer";
 import api from "@/lib/apiClient";
 import { supabase } from "@/lib/supabaseClient";
+import { getFriendlyError } from "@/lib/errorMessages";
 
 function PasswordToggleIcon({ visible }) {
   return visible ? (
@@ -35,6 +36,16 @@ export default function SignupPage() {
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail) {
+      toast.error("Email is required.");
+      return;
+    }
+    if (!password.trim()) {
+      toast.error("Password is required.");
+      return;
+    }
+
     if (!isStrongPassword(password)) {
       toast.error("Password must be at least 8 characters and include a letter, a number, and a special character");
       return;
@@ -42,7 +53,7 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      const { data } = await api.post("/api/auth/signup", { email, password });
+      const { data } = await api.post("/api/auth/signup", { email: normalizedEmail, password });
       if (data?.session) {
         await supabase.auth.setSession({
           access_token: data.session.access_token,
@@ -52,7 +63,7 @@ export default function SignupPage() {
       toast.success("Account created");
       router.push("/dashboard");
     } catch (error) {
-      toast.error(error?.response?.data?.error || "Signup failed");
+      toast.error(getFriendlyError(error, "Signup failed."));
     } finally {
       setLoading(false);
     }
@@ -61,7 +72,7 @@ export default function SignupPage() {
   return (
     <>
     <div className="layout-shell min-h-screen grid place-items-center py-10">
-      <form className="surface p-8 w-full max-w-md space-y-3" onSubmit={onSubmit}>
+      <form className="surface p-8 w-full max-w-md space-y-3" onSubmit={onSubmit} noValidate>
         <h1 className="text-2xl font-semibold">Create Account</h1>
         <input className="input" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} required />
         <div className="relative">

@@ -11,7 +11,7 @@ import usePageSession from "@/lib/usePageSession";
 
 export default function InsightsPage() {
   const { user, loading, logout } = usePageSession();
-  const [analytics, setAnalytics] = useState({ overview: { currentStreak: 0, longestStreak: 0, completionRate: 0 }, weekly: [], monthly: [] });
+  const [analytics, setAnalytics] = useState({ overview: { currentStreak: 0, longestStreak: 0, completionRate: 0 }, daily: [], weekly: [], monthly: [] });
   const [habitCount, setHabitCount] = useState(0);
 
   useEffect(() => {
@@ -38,9 +38,9 @@ export default function InsightsPage() {
   return (
     <AppShell user={user} onLogout={logout} active="/insights" title="Performance Insights" subtitle="Advanced analytics">
       {loading ? <div className="surface p-6">Loading insights...</div> : null}
-      <div className="grid xl:grid-cols-[1fr_0.75fr] gap-4">
+      <div className="space-y-4">
         <AnalyticsCharts analytics={analytics} />
-        <div className="space-y-4">
+        <div className="grid xl:grid-cols-[1fr_0.75fr] gap-4">
           <SectionCard title="AI Summary" subtitle="Behavior analysis">
             <div className="space-y-3 text-sm text-stone-700">
               <p>Current streak: <strong>{analytics.overview.currentStreak}</strong></p>
